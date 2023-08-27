@@ -17,8 +17,8 @@
 		B4327A562A9B63BB00555A2F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B4327A552A9B63BB00555A2F /* LaunchScreen.storyboard */; };
 		B4327A592A9B63D700555A2F /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4327A572A9B63D700555A2F /* Colors.swift */; };
 		B4327A5A2A9B63D700555A2F /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4327A582A9B63D700555A2F /* Date+Extensions.swift */; };
+		B4327A5C2A9B654700555A2F /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4327A5B2A9B654700555A2F /* SceneDelegate.swift */; };
 		B4944FEB2A0020D9000A648E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4944FEA2A0020D9000A648E /* AppDelegate.swift */; };
-		B4944FED2A0020D9000A648E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4944FEC2A0020D9000A648E /* SceneDelegate.swift */; };
 		B4944FEF2A0020D9000A648E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4944FEE2A0020D9000A648E /* ViewController.swift */; };
 		B4944FF22A0020D9000A648E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B4944FF02A0020D9000A648E /* Main.storyboard */; };
 		B4944FF42A0020D9000A648E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4944FF32A0020D9000A648E /* Assets.xcassets */; };
@@ -35,9 +35,9 @@
 		B4327A552A9B63BB00555A2F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B4327A572A9B63D700555A2F /* Colors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		B4327A582A9B63D700555A2F /* Date+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
+		B4327A5B2A9B654700555A2F /* SceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = "../../../Desktop/Проекты/Tracker/Tracker/SceneDelegate.swift"; sourceTree = "<group>"; };
 		B4944FE72A0020D9000A648E /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B4944FEA2A0020D9000A648E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		B4944FEC2A0020D9000A648E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		B4944FEE2A0020D9000A648E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		B4944FF12A0020D9000A648E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B4944FF32A0020D9000A648E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -75,7 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				B4944FEA2A0020D9000A648E /* AppDelegate.swift */,
-				B4944FEC2A0020D9000A648E /* SceneDelegate.swift */,
+				B4327A5B2A9B654700555A2F /* SceneDelegate.swift */,
 				B4944FEE2A0020D9000A648E /* ViewController.swift */,
 				B4327A4B2A9B63AA00555A2F /* StatisticsViewController.swift */,
 				B4327A4C2A9B63AA00555A2F /* TabBarViewController.swift */,
@@ -168,7 +168,6 @@
 				B4944FEF2A0020D9000A648E /* ViewController.swift in Sources */,
 				B4327A592A9B63D700555A2F /* Colors.swift in Sources */,
 				B4944FEB2A0020D9000A648E /* AppDelegate.swift in Sources */,
-				B4944FED2A0020D9000A648E /* SceneDelegate.swift in Sources */,
 				B4327A522A9B63AA00555A2F /* StatisticsViewController.swift in Sources */,
 				B4327A5A2A9B63D700555A2F /* Date+Extensions.swift in Sources */,
 				B4327A532A9B63AA00555A2F /* TabBarViewController.swift in Sources */,
@@ -177,6 +176,7 @@
 				B4327A542A9B63AA00555A2F /* TrackersViewController.swift in Sources */,
 				B4327A502A9B63AA00555A2F /* TrackerCreationViewController.swift in Sources */,
 				B4327A4E2A9B63AA00555A2F /* TrackerTypeViewController.swift in Sources */,
+				B4327A5C2A9B654700555A2F /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
