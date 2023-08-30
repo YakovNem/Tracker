@@ -17,7 +17,7 @@ class TrackerScheduleViewController: UIViewController, UITableViewDelegate, UITa
     private var selectedDays: [WeekDay : Bool] = [:]
     private var days: [WeekDay] = WeekDay.allCases
     
-    private var tabelView: UITableView!
+    private var tableView: UITableView!
     private var doneButton: UIButton = {
         let button = UIButton()
         button.setTitle("Готово", for: .normal)
@@ -39,7 +39,7 @@ class TrackerScheduleViewController: UIViewController, UITableViewDelegate, UITa
         
         doneButton.addTarget(self, action: #selector(didTabDoneButton), for: .touchUpInside)
         
-        tabelView = createTabelView()
+        tableView = createTabelView()
         setupUI()
     }
     
@@ -48,15 +48,15 @@ class TrackerScheduleViewController: UIViewController, UITableViewDelegate, UITa
     private func setupUI() {
         
         //Add views
-        view.addSubview(tabelView)
+        view.addSubview(tableView)
         view.addSubview(doneButton)
         
         //Constraint
         NSLayoutConstraint.activate([
-            tabelView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            tabelView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            tabelView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-            tabelView.heightAnchor.constraint(equalToConstant: 525),
+            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            tableView.heightAnchor.constraint(equalToConstant: 525),
             
             doneButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
@@ -133,16 +133,16 @@ class TrackerScheduleViewController: UIViewController, UITableViewDelegate, UITa
     
     //MARK: - Helpers
     private func createTabelView() -> UITableView? {
-        let tabelView = UITableView()
-        tabelView.delegate = self
-        tabelView.dataSource = self
-        tabelView.backgroundColor = Colors.backgroundDay
-        tabelView.layer.masksToBounds = true
-        tabelView.layer.cornerRadius = 16
-        tabelView.separatorStyle = .none
-        tabelView.translatesAutoresizingMaskIntoConstraints = false
-        tabelView.register(UITableViewCell.self, forCellReuseIdentifier: "DayCell")
-        return tabelView
+        let tableView = UITableView()
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.backgroundColor = Colors.backgroundDay
+        tableView.layer.masksToBounds = true
+        tableView.layer.cornerRadius = 16
+        tableView.separatorStyle = .none
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "DayCell")
+        return tableView
     }
 }
 

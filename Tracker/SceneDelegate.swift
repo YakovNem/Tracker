@@ -11,32 +11,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
     
+    
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            let trackersViewController = UINavigationController(rootViewController: TrackersViewController())
-            trackersViewController.title = "Трекеры"
-            trackersViewController.tabBarItem = UITabBarItem(
-                title: "Трекеры",
-                image: UIImage(named: "trackerIconInactive"),
-                selectedImage: UIImage(named: "trackerIconActive"))
-
-            let statisticsViewController = StatisticsViewController()
-            statisticsViewController.title = "Статистика"
-            statisticsViewController.tabBarItem = UITabBarItem(
-                title: "Статистика",
-                image: UIImage(named: "statisticsIconInactive"),
-                selectedImage: UIImage(named: "statisticsIconActive"))
             
-            let tabBarController = UITabBarController()
-            tabBarController.viewControllers = [trackersViewController, statisticsViewController]
+            let tabBarController = TabBarViewController()
             
             window.rootViewController = tabBarController
             self.window = window
             window.makeKeyAndVisible()
         }
+        
+        guard let _ = (scene as? UIWindowScene) else { return }
     }
-
     
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.

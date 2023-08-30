@@ -12,7 +12,7 @@ struct Tracker {
 
 struct TrackerCategory {
     let title: String
-    var trackers: [Tracker]
+    let trackers: [Tracker]
 }
 
 struct TrackerRecord: Hashable {
@@ -20,9 +20,13 @@ struct TrackerRecord: Hashable {
     let date: Date
 }
 
+private enum SearchType {
+    case date, title, none
+}
+
 //MARK: - TrackersViewController
 
-class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+class TrackersViewController: KeyboardHandlingViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     //MARK: - Properties
     
@@ -32,10 +36,11 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         }
     }
     
+    private var currentSearchType: SearchType = .none
     private var completedTrackers: [TrackerRecord] = []
-    private var currentDate: Date = Date()
     private var visibleCategories: [TrackerCategory] = []
     private var trackers: [Tracker] = []
+    private var currentDate: Date = Date()
     
     private let collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
@@ -44,37 +49,6 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "Header")
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
-    }()
-    
-    private var titleLabel: UILabel = {
-        let titleLabel = UILabel()
-        titleLabel.text = "Трекеры"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 34)
-        titleLabel.textColor = .black
-        titleLabel.backgroundColor = .clear
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        return titleLabel
-    }()
-    
-    private var searchTextField: UITextField = {
-        let searchTextField = UITextField()
-        searchTextField.placeholder = "Поиск"
-        searchTextField.borderStyle = .none
-        searchTextField.layer.cornerRadius = 12
-        searchTextField.layer.backgroundColor = Colors.backgroundDay.cgColor
-        
-        let searchIconView = UIImageView(frame: CGRect(x: 10, y: 5, width: 20, height: 20))
-        searchIconView.image = UIImage(systemName: "magnifyingglass")
-        searchIconView.contentMode = .scaleAspectFit
-        searchIconView.tintColor = .lightGray
-        
-        let viewContainer = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 30))
-        viewContainer.addSubview(searchIconView)
-        
-        searchTextField.leftView = viewContainer
-        searchTextField.leftViewMode = .always
-        searchTextField.translatesAutoresizingMaskIntoConstraints = false
-        return searchTextField
     }()
     
     private lazy var datePicker: UIDatePicker = {
@@ -89,35 +63,46 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         return datePicker
     }()
     
-    private lazy var emptyView: UIView = {
-        let view = UIView()
-        
+    private lazy var emptyImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "star")
         imageView.contentMode = .scaleAspectFill
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        
+        return imageView
+    }()
+    
+    private var emptyLabel: UILabel = {
         let label = UILabel()
-        label.text = "Что будем отслеживать?"
         label.textColor = .black
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 12)
         label.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(imageView)
-        view.addSubview(label)
+        return label
+    }()
+    
+    private var searchBar: UISearchBar = {
+        let searchBar = UISearchBar()
+        searchBar.searchBarStyle = .minimal
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        searchBar.placeholder = "Поиск"
+        return searchBar
+    }()
+    
+    private lazy var emptyView: UIView = {
+        let view = UIView()
+        view.addSubview(emptyImageView)
+        view.addSubview(emptyLabel)
         
         NSLayoutConstraint.activate([
-            imageView.widthAnchor.constraint(equalToConstant: 80),
-            imageView.heightAnchor.constraint(equalToConstant: 80),
-            imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            emptyImageView.widthAnchor.constraint(equalToConstant: 80),
+            emptyImageView.heightAnchor.constraint(equalToConstant: 80),
+            emptyImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             
-            label.widthAnchor.constraint(equalToConstant: 343),
-            label.heightAnchor.constraint(equalToConstant: 18),
-            label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8)
+            emptyLabel.widthAnchor.constraint(equalToConstant: 343),
+            emptyLabel.heightAnchor.constraint(equalToConstant: 18),
+            emptyLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            emptyLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            emptyLabel.topAnchor.constraint(equalTo: emptyImageView.bottomAnchor, constant: 8)
         ])
         view.isHidden = true
         return view
@@ -134,9 +119,10 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         self.navigationItem.rightBarButtonItem = datePickerItem
     }
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = "Трекеры"
+        navigationController?.navigationBar.prefersLargeTitles = true
         
         let tracker1 = Tracker(id: UUID(), title: "Поливать растения", color: ColorsSelection.selectionFive, emoji: "❤️", schedule: [1])
         let tracker2 = Tracker(id: UUID(), title: "Кошка заслонила камеру на созвоне", color: ColorsSelection.selectionTwo, emoji: "😻", schedule: [4, 5, 6])
@@ -147,50 +133,42 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         
         categories = [trackerCategory, trackerCategory2]
         
-        searchTextField.delegate = self
+        searchBar.delegate = self
         
         collectionView.delegate = self
         collectionView.dataSource = self
         
-        setLayout()
+        setupLayout()
+        
+        currentSearchType = .date
+        filterTrackerByDate()
+        
         updateEmptyViewVisibility()
     }
     
     //MARK: - Layout Configuration
     
-    private func setLayout() {
+    private func setupLayout() {
         view.backgroundColor = .white
         emptyView.translatesAutoresizingMaskIntoConstraints = false
         
-        view.addSubview(searchTextField)
-        view.addSubview(titleLabel)
-        view.addSubview(datePicker)
         view.addSubview(collectionView)
         view.addSubview(emptyView)
+        view.addSubview(searchBar)
         
         NSLayoutConstraint.activate([
-            titleLabel.widthAnchor.constraint(equalToConstant: 254),
-            titleLabel.heightAnchor.constraint(equalToConstant: 41),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: view.leadingAnchor, constant: -105),
-            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 88),
+            searchBar.heightAnchor.constraint(equalToConstant: 36),
+            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 8),
+            searchBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -8),
             
-            searchTextField.widthAnchor.constraint(equalToConstant: 343),
-            searchTextField.heightAnchor.constraint(equalToConstant: 36),
-            searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            searchTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 7),
-            
-            datePicker.widthAnchor.constraint(equalToConstant: 100),
+            datePicker.widthAnchor.constraint(equalToConstant: 105),
             datePicker.heightAnchor.constraint(equalToConstant: 34),
-            datePicker.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 234),
-            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            datePicker.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
             
-            collectionView.topAnchor.constraint(equalTo: searchTextField.bottomAnchor, constant: 24),
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 24),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
             emptyView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             emptyView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
@@ -215,6 +193,7 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         currentDate = datePicker.date
         filterTrackerByDate()
         updateEmptyViewVisibility()
+        currentSearchType = .date
         collectionView.reloadData()
     }
     
@@ -227,34 +206,20 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
         }.filter { !$0.trackers.isEmpty}
     }
     
-    // Фильтрация по поиску
-    
     private func updateEmptyViewVisibility() {
         let isEmpty = visibleCategories.allSatisfy { $0.trackers.isEmpty }
         emptyView.isHidden = !isEmpty
-    }
-    
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         
-        let currentText = textField.text ?? ""
-        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
-        
-        if newText.isEmpty {
-            visibleCategories = categories
-            collectionView.reloadData()
-            updateEmptyViewVisibility()
-            return true
+        switch currentSearchType {
+        case .date:
+            emptyImageView.image = UIImage(named: "star")
+            emptyLabel.text = "Что будем отслеживать?"
+        case .title:
+            emptyImageView.image = UIImage(named: "emojiSearch")
+            emptyLabel.text = "Ничего не найдено"
+        case .none:
+            break
         }
-        
-        visibleCategories = categories.map { category in
-            let filteredTrackers = category.trackers.filter { $0.title.lowercased().contains(newText.lowercased()) }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
-        
-        updateEmptyViewVisibility()
-        collectionView.reloadData()
-        
-        return true
     }
     
     //MARK: - UICollectionViewDataSource
@@ -265,7 +230,9 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackerCell.identifier, for: indexPath) as? TrackerCell
+        cell?.prepareForReuse()
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
+        cell?.delegate = self
         cell?.configure(with: tracker, completedTrackers:  completedTrackers, currentDate: currentDate)
         return cell!
     }
@@ -301,13 +268,16 @@ class TrackersViewController: UIViewController, UITextFieldDelegate, UICollectio
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: 50)
     }
-    
 }
+
+    //MARK: - Extension
 
 extension TrackersViewController: TrackerCreationDelegate {
     func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) {
         if let index = categories.firstIndex(where: { $0.title == category.title }) {
-            categories[index].trackers.append(tracker)
+            let updatedTrackers = categories[index].trackers + [tracker]
+            let updatedCategory = TrackerCategory(title: category.title, trackers: updatedTrackers)
+            categories[index] = updatedCategory
         } else {
             categories.append(category)
         }
@@ -315,5 +285,63 @@ extension TrackersViewController: TrackerCreationDelegate {
     }
 }
 
+extension TrackersViewController: TrackerCellDelegate {
+    
+    func isTrackerCompleted(_ tracker: Tracker) -> Bool {
+        return completedTrackers.contains(where: { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) })
+    }
+    
+    func trackerCell(_ cell: TrackerCell, didAdd tracker: Tracker) {
+        let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
+        
+        if !completedTrackers.contains(where: { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }) {
+            completedTrackers.append(record)
+            cell.configure(with: tracker, completedTrackers: completedTrackers, currentDate: currentDate)
+        }
+    }
+    
+    func trackerCell(_ cell: TrackerCell, didRemove tracker: Tracker) {
+        if let index = completedTrackers.firstIndex(where: { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }) {
+            completedTrackers.remove(at: index)
+            cell.configure(with: tracker, completedTrackers: completedTrackers, currentDate: currentDate)
+        }
+    }
+}
 
-
+extension TrackersViewController: UISearchBarDelegate {
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = nil
+        
+        searchBar.setShowsCancelButton(false, animated: true)
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        currentSearchType = .title
+        
+        if searchText.isEmpty {
+            visibleCategories = categories
+        } else {
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { $0.title.lowercased().contains(searchText.lowercased()) }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        }
+        
+        updateEmptyViewVisibility()
+        collectionView.reloadData()
+    }
+}
