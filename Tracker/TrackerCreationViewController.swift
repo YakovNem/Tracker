@@ -8,7 +8,7 @@ import UIKit
 
 protocol TrackerCreationDelegate: AnyObject { func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) }
 
-class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, TrackerScheduleDelegate {
+class TrackerCreationViewController: KeyboardHandlingViewController, UITableViewDelegate, UITableViewDataSource, TrackerScheduleDelegate {
     
     //MARK: - Properties
     
@@ -47,11 +47,11 @@ class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITa
     private var cancelButton: UIButton = {
         let cancelButton = UIButton()
         cancelButton.setTitle("Отменить", for: .normal)
-        cancelButton.setTitleColor(UIColor(red: 0.96, green: 0.42, blue: 0.42, alpha: 1), for: .normal)
+        cancelButton.setTitleColor(UIColor(cgColor: Colors.red), for: .normal)
         cancelButton.backgroundColor = .white
         cancelButton.layer.cornerRadius = 16
         cancelButton.layer.borderWidth = 1
-        cancelButton.layer.borderColor = UIColor(red: 0.961, green: 0.42, blue: 0.424, alpha: 1).cgColor
+        cancelButton.layer.borderColor = Colors.red
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         return cancelButton
     }()
@@ -83,7 +83,7 @@ class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITa
     
     private func setupLayout() {
         
-        tableView = createTabelView()
+        tableView = createTableView()
         
         view.addSubview(tableView)
         view.addSubview(textField)
@@ -130,7 +130,7 @@ class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITa
     func didSelectDays(_ days: [WeekDay]) {
         selectedDays = days.map { $0.rawValue }
             .sortedDaysOfWeek()
-            .map { WeekDay(rawValue: $0)! }
+            .compactMap { WeekDay(rawValue: $0) }
         tableView.reloadData()
     }
     
@@ -205,7 +205,7 @@ class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITa
     
     //MARK: - Helpers
     
-    private func createTabelView() -> UITableView {
+    private func createTableView() -> UITableView {
         let tabel = UITableView()
         tabel.delegate = self
         tabel.dataSource = self

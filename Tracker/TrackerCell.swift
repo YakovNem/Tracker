@@ -1,11 +1,19 @@
 import UIKit
 
+protocol TrackerCellDelegate: AnyObject {
+    func trackerCell(_ cell: TrackerCell, didAdd tracker: Tracker)
+    func trackerCell(_ cell: TrackerCell, didRemove tracker: Tracker)
+    func isTrackerCompleted(_ tracker: Tracker) -> Bool
+}
+
 class TrackerCell: UICollectionViewCell {
     
     //MARK: - Constants
     static let identifier = "TrackerCell"
     
     //MARK: - Properties
+    weak var delegate: TrackerCellDelegate?
+    
     private var tracker: Tracker?
     private var completedTrackerSet = Set<TrackerRecord>()
     private var count = 0
@@ -23,7 +31,6 @@ class TrackerCell: UICollectionViewCell {
         var quantityManagement = UIView()
         quantityManagement.translatesAutoresizingMaskIntoConstraints = false
         return quantityManagement
-        
     }()
     
     private var titleLabel: UILabel = {
@@ -59,7 +66,7 @@ class TrackerCell: UICollectionViewCell {
         buttonPlus.tintColor = .white
         buttonPlus.layer.cornerRadius = 17
         buttonPlus.translatesAutoresizingMaskIntoConstraints = false
-        buttonPlus.addTarget(self, action: #selector(addComplited), for: .touchUpInside)
+        buttonPlus.addTarget(self, action: #selector(addCompleted), for: .touchUpInside)
         return buttonPlus
     }()
     
@@ -129,29 +136,24 @@ class TrackerCell: UICollectionViewCell {
     
     //MARK: - Actions
     
-    @objc func addComplited() {
-        guard let trackerId = tracker?.id else { return }
+    @objc func addCompleted() {
+        guard let tracker = tracker else { return }
         
-        let trackerRecord = TrackerRecord(trackerId: trackerId, date: currentDate)
-        
-        if completedTrackerSet.contains(trackerRecord) {
-            completedTrackerSet.remove(trackerRecord)
+        if delegate?.isTrackerCompleted(tracker) == true {
+            delegate?.trackerCell(self, didRemove: tracker)
         } else {
-            completedTrackerSet.insert(trackerRecord)
+            delegate?.trackerCell(self, didAdd: tracker)
         }
         
         updateButtonImage()
-        count = completedTrackerSet.filter { $0.trackerId == trackerId }.count
+        count = completedTrackerSet.filter { $0.trackerId == tracker.id }.count
         daysLabel.text = "\(count) \(endingDays(count: count))"
     }
     
     private func updateButtonImage() {
-        guard let trackerId = tracker?.id else { return }
+        guard let tracker = tracker else { return }
         
-        let isCompletedToday = completedTrackerSet.contains { record in
-            record.trackerId == trackerId && Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-        }
-        
+        let isCompletedToday = delegate?.isTrackerCompleted(tracker) ?? false
         buttonPlus.setImage(isCompletedToday ? UIImage(systemName: "checkmark") : UIImage(systemName: "plus"), for: .normal)
     }
     
@@ -168,7 +170,7 @@ class TrackerCell: UICollectionViewCell {
     func configure(with tracker: Tracker, completedTrackers:[TrackerRecord], currentDate: Date) {
         self.currentDate = currentDate
         self.tracker = tracker
-        completedTrackerSet.formUnion(completedTrackers)
+        self.completedTrackerSet = Set(completedTrackers)
         
         cardTrackerView.backgroundColor = tracker.color
         quantityManagement.backgroundColor = .white
