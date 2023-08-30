@@ -193,6 +193,7 @@ class TrackersViewController: KeyboardHandlingViewController, UICollectionViewDe
     //Выбор даты и фильтрация
     
     @objc func datePickerChanged () {
+        currentDate = datePicker.date
         filterTrackerByDate()
         currentSearchType = .date
         collectionView.reloadData()
@@ -200,7 +201,6 @@ class TrackersViewController: KeyboardHandlingViewController, UICollectionViewDe
     
     private func filterTrackerByDate() {
         let dayOfWeek = currentDate.dayOfWeek()
-        
         visibleCategories = categories.map { category in
             let filter = category.trackers.filter { $0.schedule.contains(dayOfWeek) }
             return TrackerCategory(title: category.title, trackers: filter)
