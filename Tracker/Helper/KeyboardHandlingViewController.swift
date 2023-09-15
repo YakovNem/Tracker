@@ -1,10 +1,3 @@
-//
-//  KeyboardHandlingViewController.swift
-//  Tracker
-//
-//  Created by Yakov Nemychenkov on 28.08.2023.
-//
-
 import UIKit
 
 class KeyboardHandlingViewController: UIViewController {
