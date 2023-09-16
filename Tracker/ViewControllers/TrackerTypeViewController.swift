@@ -1,8 +1,8 @@
 import UIKit
 
-enum TrackerType {
-    case habit
-    case irregularEvent
+enum TrackerType: String {
+    case habit = "habit"
+    case irregularEvent = "irregularEvent"
 }
 
 final class TrackerTypeViewController: UIViewController {

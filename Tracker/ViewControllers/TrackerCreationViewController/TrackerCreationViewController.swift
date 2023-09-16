@@ -1,6 +1,6 @@
 import UIKit
 
-protocol TrackerCreationDelegate: AnyObject { func didCreateTracker(_ tracker: Tracker, category: TrackerCategory)}
+protocol TrackerCreationDelegate: AnyObject { func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type: TrackerType)}
 
 class TrackerCreationViewController: KeyboardHandlingViewController, UITableViewDelegate, UITableViewDataSource, TrackerScheduleDelegate {
     
@@ -13,7 +13,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     private var tableView: UITableView!
     private var collectionView: ItemsCollectionView!
-            var trackerType: TrackerType?
+    var trackerType: TrackerType?
     
     private var textField: UITextField = {
         let textField = UITextField()
@@ -140,18 +140,17 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         guard let trackerName = textField.text, !trackerName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         guard let selectedEmojiIndex = collectionView.selectedEmojiIndex else { return }
         guard let selectedColorIndex = collectionView.selectedColorIndex else { return }
-
+        guard let trackerType = self.trackerType else { return }
+        
         let selectedEmoji = collectionView.emoji[selectedEmojiIndex.item]
         let selectedColor = collectionView.colors[selectedColorIndex.item]
         
-        let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor , emoji: selectedEmoji, schedule: selectedDays)
-
+        let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays)
         let categoryTracker = TrackerCategory(title: "Важное", trackers: [newTracker])
-
-        delegate?.didCreateTracker(newTracker, category: categoryTracker)
+        
+        delegate?.didCreateTracker(newTracker, category: categoryTracker, type: trackerType)
         dismiss(animated: true, completion: nil)
     }
-
     
     @objc func cancelTapped() {
         dismiss(animated: true, completion: nil)

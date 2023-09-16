@@ -42,13 +42,15 @@ final class TrackerStore: NSObject {
         return fetchedResultsController.fetchedObjects ?? []
     }
 
-    func createTracker(tracker: Tracker, category: TrackerCategory) throws -> TrackerCoreData? {
+    func createTracker(tracker: Tracker, category: TrackerCategory, type: TrackerType) throws -> TrackerCoreData? {
         let newTracker = TrackerCoreData(context: context)
         newTracker.id = tracker.id
         newTracker.title = tracker.title
         newTracker.emoji = tracker.emoji
         newTracker.color = uIColorMarshalling.hexString(from: tracker.color)
         newTracker.schedule = tracker.schedule?.toString()
+        newTracker.type = type.rawValue
+     
 
         let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
@@ -113,17 +115,27 @@ final class TrackerStore: NSObject {
     }
     
     func updateFetchRequest(forDate date: Date) {
-            guard let dayOfWeek = date.dayOfWeek() else { return }
-            let predicate = NSPredicate(format: "schedule CONTAINS %@", "\(dayOfWeek)")
-            fetchedResultsController.fetchRequest.predicate = predicate
-            do {
-                try fetchedResultsController.performFetch()
-            } catch let error {
-                print("Failed to update fetch request for date: \(error)")
-            }
-            delegate?.didUpdateData(in: self)
+        var predicates: [NSPredicate] = []
+
+        if let dayOfWeek = date.dayOfWeek() {
+            let habitPredicate = NSPredicate(format: "type == %@ AND schedule CONTAINS %@", TrackerType.habit.rawValue, "\(dayOfWeek)")
+            let irregularPredicate = NSPredicate(format: "type == %@", TrackerType.irregularEvent.rawValue)
+            predicates = [habitPredicate, irregularPredicate]
+        } else {
+            // Если день недели не определен, возвращаем все трекеры (или добавьте дополнительную логику)
+            return
         }
-    
+
+        fetchedResultsController.fetchRequest.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
+        
+        do {
+            try fetchedResultsController.performFetch()
+        } catch let error {
+            print("Failed to update fetch request for date: \(error)")
+        }
+        delegate?.didUpdateData(in: self)
+    }
+
     func updateSearchPredicate(with searchText: String?) {
         var predicates: [NSPredicate] = []
 

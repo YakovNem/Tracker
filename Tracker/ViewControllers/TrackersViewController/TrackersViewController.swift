@@ -291,9 +291,13 @@ extension TrackersViewController: UICollectionViewDelegate, UICollectionViewData
 }
 
 extension TrackersViewController: TrackerCreationDelegate {
-    func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) {
+    func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type trackerType: TrackerType) {
         do {
-            if let _ = try trackerStore.createTracker(tracker: tracker, category: category) {
+            switch trackerType {
+            case .habit:
+                try? trackerStore.createTracker(tracker: tracker, category: category, type: .habit)
+            case .irregularEvent:
+                try? trackerStore.createTracker(tracker: tracker, category: category, type: .irregularEvent)
             }
         } catch let error {
             print("Ошибка создания трекера \(error)")
