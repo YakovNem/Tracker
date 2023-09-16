@@ -1,6 +1,11 @@
 import UIKit
 
-class TrackerTypeViewController: UIViewController {
+enum TrackerType {
+    case habit
+    case irregularEvent
+}
+
+final class TrackerTypeViewController: UIViewController {
     
     weak var delegate: TrackerCreationDelegate?
     private let trackerCreationVC = TrackerCreationViewController()
@@ -67,11 +72,14 @@ class TrackerTypeViewController: UIViewController {
     //MARK: - Actions
     
     @objc func handleHabit() {
+        trackerCreationVC.trackerType = .habit
         trackerCreationVC.delegate = self.delegate
         navigationController?.pushViewController(trackerCreationVC, animated: true)
     }
     
     @objc func handleIrregularEvent() {
+        trackerCreationVC.trackerType = .irregularEvent
+        trackerCreationVC.delegate = self.delegate
         navigationController?.pushViewController(trackerCreationVC, animated: true)
     }
 }

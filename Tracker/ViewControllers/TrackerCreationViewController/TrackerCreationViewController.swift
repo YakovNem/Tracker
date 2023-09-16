@@ -13,6 +13,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     private var tableView: UITableView!
     private var collectionView: ItemsCollectionView!
+            var trackerType: TrackerType?
     
     private var textField: UITextField = {
         let textField = UITextField()
@@ -70,10 +71,18 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.title = "Новая привычка"
         navigationItem.hidesBackButton = true
         view.backgroundColor = .white
         trackerScheduleViewController.delegate = self
+        
+        switch trackerType {
+        case .habit:
+            navigationItem.title = "Новая привычка"
+        case .irregularEvent:
+            navigationItem.title = "Новое нерегулярное событие"
+        case .none:
+            navigationItem.title = ""
+        }
         
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
@@ -107,7 +116,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
             textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             textField.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 24),
             
-            tableView.heightAnchor.constraint(equalToConstant: 150),
+            tableView.heightAnchor.constraint(equalToConstant: trackerType == .habit ? 150 : 75),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 24),
@@ -179,13 +188,13 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 2
+        return trackerType == .habit ? 2 : 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         
-        if indexPath.row == 0 {
+        if indexPath.row == 0  && trackerType == .habit {
             let cellHeight = self.tableView(tableView, heightForRowAt: indexPath)
             
             let separatorHeight: CGFloat = 1
@@ -238,19 +247,3 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         return table
     }
 }
-
-extension Array where Element == Int {
-    func sortedDaysOfWeek() -> [Int] {
-        self.sorted { (day1, day2) -> Bool in
-            switch (day1, day2) {
-            case (1, 7):
-                return false
-            case (7, 1):
-                return true
-            default:
-                return day1 < day2
-            }
-        }
-    }
-}
-

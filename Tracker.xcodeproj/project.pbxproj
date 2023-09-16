@@ -22,6 +22,7 @@
 		B45E298B2AA0B91C00156524 /* ColorsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45E298A2AA0B91C00156524 /* ColorsCell.swift */; };
 		B46EC4582AB37A0D00533442 /* WeekDay .swift in Sources */ = {isa = PBXBuildFile; fileRef = B46EC4572AB37A0D00533442 /* WeekDay .swift */; };
 		B46EC45D2AB45FAF00533442 /* TrackerCoreData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = B46EC45B2AB45FAF00533442 /* TrackerCoreData.xcdatamodeld */; };
+		B47A23D92AB59B9D00DF6388 /* Array + Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47A23D82AB59B9D00DF6388 /* Array + Extensions.swift */; };
 		B4944FEB2A0020D9000A648E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4944FEA2A0020D9000A648E /* AppDelegate.swift */; };
 		B4944FF22A0020D9000A648E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B4944FF02A0020D9000A648E /* Main.storyboard */; };
 		B4944FF42A0020D9000A648E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4944FF32A0020D9000A648E /* Assets.xcassets */; };
@@ -53,6 +54,7 @@
 		B45E298A2AA0B91C00156524 /* ColorsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorsCell.swift; sourceTree = "<group>"; };
 		B46EC4572AB37A0D00533442 /* WeekDay .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeekDay .swift"; sourceTree = "<group>"; };
 		B46EC45C2AB45FAF00533442 /* TrackerCoreData.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TrackerCoreData.xcdatamodel; sourceTree = "<group>"; };
+		B47A23D82AB59B9D00DF6388 /* Array + Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array + Extensions.swift"; sourceTree = "<group>"; };
 		B4944FE72A0020D9000A648E /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B4944FEA2A0020D9000A648E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B4944FF12A0020D9000A648E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 				B4327A572A9B63D700555A2F /* Colors.swift */,
 				B4E77E4D2A9D134600C0D35F /* KeyboardHandlingViewController.swift */,
 				B4B945842AB304AC00D1BE4A /* String + Extensions.swift */,
+				B47A23D82AB59B9D00DF6388 /* Array + Extensions.swift */,
 				B4327A582A9B63D700555A2F /* Date+Extensions.swift */,
 			);
 			path = Helper;
@@ -283,6 +286,7 @@
 				B4E77E4C2A9D068300C0D35F /* TabBarViewController .swift in Sources */,
 				B45E29872AA0AA6900156524 /* EmojiCell.swift in Sources */,
 				B4B945852AB304AC00D1BE4A /* String + Extensions.swift in Sources */,
+				B47A23D92AB59B9D00DF6388 /* Array + Extensions.swift in Sources */,
 				B4E77E4E2A9D134600C0D35F /* KeyboardHandlingViewController.swift in Sources */,
 				B455A7A42AAB6375005F5347 /* Tracker.swift in Sources */,
 				B4327A542A9B63AA00555A2F /* TrackersViewController.swift in Sources */,

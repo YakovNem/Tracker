@@ -184,9 +184,19 @@ class TrackersViewController: KeyboardHandlingViewController {
     }
     
     private func updateEmptyViewVisibility() {
-        let isEmpty = trackerStore.fetchedResultsController.fetchedObjects?.isEmpty ?? true
+        let isEmpty: Bool
+
+        switch currentSearchType {
+        case .date:
+            isEmpty = trackerStore.fetchedResultsController.fetchedObjects?.isEmpty ?? true
+        case .title:
+            isEmpty = (trackerStore.fetchedResultsController.fetchedObjects?.isEmpty ?? true) && !(searchBar.text?.isEmpty ?? true)
+        case .none:
+            isEmpty = trackerStore.fetchedResultsController.fetchedObjects?.isEmpty ?? true
+        }
+
         emptyView.isHidden = !isEmpty
-        
+
         switch currentSearchType {
         case .date:
             emptyImageView.image = UIImage(named: "star")
@@ -289,6 +299,7 @@ extension TrackersViewController: TrackerCreationDelegate {
             print("Ошибка создания трекера \(error)")
         }
         collectionView.reloadData()
+        updateEmptyViewVisibility()
     }
 }
 

@@ -2,7 +2,7 @@ import UIKit
 
 protocol TrackerScheduleDelegate: AnyObject { func didSelectDays(_ days: [WeekDay]) }
 
-class TrackerScheduleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+final class TrackerScheduleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     //MARK: - Properties
     

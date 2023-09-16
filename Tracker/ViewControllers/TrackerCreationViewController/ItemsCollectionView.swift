@@ -1,13 +1,13 @@
 import UIKit
 
-class ItemsCollectionView: UICollectionView, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+final class ItemsCollectionView: UICollectionView, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     var emoji: [String] = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝", "😪"]
     
     var colors: [UIColor] = [ ColorsSelection.selectionOne,ColorsSelection.selectionTwo, ColorsSelection.selectionThree, ColorsSelection.selectionFour, ColorsSelection.selectionFive, ColorsSelection.selectionSix, ColorsSelection.selectionSeven, ColorsSelection.selectionEight, ColorsSelection.selectionNine, ColorsSelection.selectionTen, ColorsSelection.selectionEleven, ColorsSelection.selectionTwelve, ColorsSelection.selectionThirteen, ColorsSelection.selectionFourteen, ColorsSelection.selectionFifteen, ColorsSelection.selectionSixteen, ColorsSelection.selectionSeventeen, ColorsSelection.selectionEighteen]
     
-     var selectedEmojiIndex: IndexPath?
-     var selectedColorIndex: IndexPath?
+    var selectedEmojiIndex: IndexPath?
+    var selectedColorIndex: IndexPath?
     
     init() {
         super.init(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
@@ -88,16 +88,16 @@ class ItemsCollectionView: UICollectionView, UICollectionViewDelegate, UICollect
     
     //MARK: - UICollectionViewDelegateFlowLayout
     
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    func collectionView(
+                    _ collectionView: UICollectionView,
+                    viewForSupplementaryElementOfKind kind: String,
+                    at indexPath: IndexPath)
+                        -> UICollectionReusableView {
         let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "header", for: indexPath)
         let label = UILabel(frame: CGRect(x: 10, y: 0, width: header.bounds.width - 20, height: header.bounds.height))
         label.font = UIFont.boldSystemFont(ofSize: 20)
         
-        if indexPath.section == 0 {
-            label.text = "Emoji"
-        } else {
-            label.text = "Цвет"
-        }
+        label.text = indexPath.section == 0 ? "Emoji" : "Цвет"
         
         header.addSubview(label)
         return header
@@ -111,11 +111,11 @@ class ItemsCollectionView: UICollectionView, UICollectionViewDelegate, UICollect
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-           5
-       }
-
-       func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-           9
-       }
-   }
+        5
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        9
+    }
+}
 
