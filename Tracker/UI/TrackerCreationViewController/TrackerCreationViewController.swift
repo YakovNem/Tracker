@@ -7,8 +7,11 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     //MARK: - Properties
     
     weak var delegate: TrackerCreationDelegate?
+    var selectedCategory: TrackerCategoryCoreData?
     
     private let trackerScheduleViewController = TrackerScheduleViewController()
+    private let categoryListViewController = CategoryListViewController()
+    private let categoryStore = TrackerCategoryStore()
     private var selectedDays: [WeekDay] = []
     
     private var tableView: UITableView!
@@ -88,6 +91,10 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         
         setupLayout()
+        
+        categoryListViewController.categorySelected = { [weak self] selectedCategory in
+            self?.selectedCategory = selectedCategory
+        }
     }
     
     //MARK: - Layout Configuration
@@ -141,14 +148,16 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         guard let selectedEmojiIndex = collectionView.selectedEmojiIndex else { return }
         guard let selectedColorIndex = collectionView.selectedColorIndex else { return }
         guard let trackerType = self.trackerType else { return }
+        guard let category = selectedCategory else { return }
+        
+        let trackerCategory = categoryStore.trackerCategory(from: category)
         
         let selectedEmoji = collectionView.emoji[selectedEmojiIndex.item]
         let selectedColor = collectionView.colors[selectedColorIndex.item]
         
         let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays)
-        let categoryTracker = TrackerCategory(title: "Важное", trackers: [newTracker])
         
-        delegate?.didCreateTracker(newTracker, category: categoryTracker, type: trackerType)
+        delegate?.didCreateTracker(newTracker, category: trackerCategory!, type: trackerType)
         dismiss(animated: true, completion: nil)
     }
     
@@ -169,7 +178,8 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         tableView.deselectRow(at: indexPath, animated: true)
         
         switch indexPath.row {
-        case 0: break
+        case 0:
+            navigationController?.pushViewController(categoryListViewController, animated: true)
         case 1:
             navigationController?.pushViewController(trackerScheduleViewController, animated: true)
         default: break

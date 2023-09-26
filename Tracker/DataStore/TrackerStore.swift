@@ -12,6 +12,7 @@ enum TrackerStoreError: Error {
 final class TrackerStore: NSObject {
     
     private let uIColorMarshalling = UIColorMarshalling()
+    private let context = CoreDataManager.shared.context
     
      lazy var fetchedResultsController: NSFetchedResultsController<TrackerCoreData> = {
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
@@ -30,10 +31,6 @@ final class TrackerStore: NSObject {
         }
         
         return controller
-    }()
-    
-    private let context: NSManagedObjectContext = {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }()
     
     weak var delegate: TrackerStoreDelegate?
@@ -91,11 +88,7 @@ final class TrackerStore: NSObject {
 
     func deleteTracker(tracker: TrackerCoreData) {
         context.delete(tracker)
-        do {
-            try context.save()
-        } catch let error {
-            print("Failed to delete Tracker: \(error.localizedDescription)")
-        }
+        CoreDataManager.shared.saveContext()
     }
     
     func tracker(from coreData: TrackerCoreData) -> Tracker? {
@@ -122,10 +115,9 @@ final class TrackerStore: NSObject {
             let irregularPredicate = NSPredicate(format: "type == %@", TrackerType.irregularEvent.rawValue)
             predicates = [habitPredicate, irregularPredicate]
         } else {
-            // Если день недели не определен, возвращаем все трекеры (или добавьте дополнительную логику)
             return
         }
-
+        
         fetchedResultsController.fetchRequest.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
         
         do {
