@@ -1,12 +1,6 @@
-//
-//  TrackerCreationViewController.swift
-//  Tracker
-//
-//  Created by Yakov Nemychenkov on 09.07.2023.
-//
 import UIKit
 
-protocol TrackerCreationDelegate: AnyObject { func didCreateTracker(_ tracker: Tracker, category: TrackerCategory) }
+protocol TrackerCreationDelegate: AnyObject { func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type: TrackerType)}
 
 class TrackerCreationViewController: KeyboardHandlingViewController, UITableViewDelegate, UITableViewDataSource, TrackerScheduleDelegate {
     
@@ -18,6 +12,8 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     private var selectedDays: [WeekDay] = []
     
     private var tableView: UITableView!
+    private var collectionView: ItemsCollectionView!
+    var trackerType: TrackerType?
     
     private var textField: UITextField = {
         let textField = UITextField()
@@ -32,6 +28,13 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         textField.leftViewMode = .always
         textField.leftView = spacerView
         return textField
+    }()
+    
+    private var scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.keyboardDismissMode = .onDrag
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
     }()
     
     private var saveButton: UIButton = {
@@ -68,10 +71,18 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.title = "Новая привычка"
         navigationItem.hidesBackButton = true
         view.backgroundColor = .white
         trackerScheduleViewController.delegate = self
+        
+        switch trackerType {
+        case .habit:
+            navigationItem.title = "Новая привычка"
+        case .irregularEvent:
+            navigationItem.title = "Новое нерегулярное событие"
+        case .none:
+            navigationItem.title = ""
+        }
         
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
@@ -84,42 +95,60 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     private func setupLayout() {
         
         tableView = createTableView()
+        collectionView = ItemsCollectionView()
         
-        view.addSubview(tableView)
-        view.addSubview(textField)
-        view.addSubview(buttonStack)
+        view.addSubview(scrollView)
+        scrollView.addSubview(textField)
+        scrollView.addSubview(tableView)
+        scrollView.addSubview(collectionView)
+        scrollView.addSubview(buttonStack)
         buttonStack.addArrangedSubview(cancelButton)
         buttonStack.addArrangedSubview(saveButton)
         
         NSLayoutConstraint.activate([
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            
             textField.heightAnchor.constraint(equalToConstant: 75),
             textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            textField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            textField.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 24),
             
-            buttonStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            buttonStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            buttonStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -34),
-            buttonStack.heightAnchor.constraint(equalToConstant: 60),
-            
+            tableView.heightAnchor.constraint(equalToConstant: trackerType == .habit ? 150 : 75),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 20),
-            tableView.heightAnchor.constraint(equalToConstant: 150)
+            tableView.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 24),
+            
+            collectionView.heightAnchor.constraint(equalToConstant: 450),
+            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 18),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -19),
+            collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 25),
+            
+            buttonStack.heightAnchor.constraint(equalToConstant: 60),
+            buttonStack.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
+            buttonStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            buttonStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            buttonStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -16),
         ])
     }
     
     //MARK: - Actions
     
     @objc func saveTapped() {
-        guard let trackerName = textField.text, !trackerName.trimmingCharacters(in: .whitespaces).isEmpty else{ return }
-        let schedule = selectedDays.map { $0.rawValue}
+        guard let trackerName = textField.text, !trackerName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        guard let selectedEmojiIndex = collectionView.selectedEmojiIndex else { return }
+        guard let selectedColorIndex = collectionView.selectedColorIndex else { return }
+        guard let trackerType = self.trackerType else { return }
         
-        let newTracker = Tracker(id: UUID(), title: trackerName, color: ColorsSelection.selectionFourteen , emoji: "🤔", schedule: schedule)
+        let selectedEmoji = collectionView.emoji[selectedEmojiIndex.item]
+        let selectedColor = collectionView.colors[selectedColorIndex.item]
         
+        let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays)
         let categoryTracker = TrackerCategory(title: "Важное", trackers: [newTracker])
         
-        delegate?.didCreateTracker(newTracker, category: categoryTracker)
+        delegate?.didCreateTracker(newTracker, category: categoryTracker, type: trackerType)
         dismiss(animated: true, completion: nil)
     }
     
@@ -158,13 +187,13 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 2
+        return trackerType == .habit ? 2 : 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         
-        if indexPath.row == 0 {
+        if indexPath.row == 0  && trackerType == .habit {
             let cellHeight = self.tableView(tableView, heightForRowAt: indexPath)
             
             let separatorHeight: CGFloat = 1
@@ -206,30 +235,14 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     //MARK: - Helpers
     
     private func createTableView() -> UITableView {
-        let tabel = UITableView()
-        tabel.delegate = self
-        tabel.dataSource = self
-        tabel.backgroundColor = Colors.backgroundDay
-        tabel.layer.cornerRadius = 16
-        tabel.separatorStyle = .none
-        tabel.translatesAutoresizingMaskIntoConstraints = false
-        tabel.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        return tabel
+        let table = UITableView()
+        table.delegate = self
+        table.dataSource = self
+        table.backgroundColor = Colors.backgroundDay
+        table.layer.cornerRadius = 16
+        table.separatorStyle = .none
+        table.translatesAutoresizingMaskIntoConstraints = false
+        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        return table
     }
 }
-
-extension Array where Element == Int {
-    func sortedDaysOfWeek() -> [Int] {
-        self.sorted { (day1, day2) -> Bool in
-            switch (day1, day2) {
-                case (1, 7):
-                    return false
-                case (7, 1):
-                    return true
-                default:
-                    return day1 < day2
-            }
-        }
-    }
-}
-

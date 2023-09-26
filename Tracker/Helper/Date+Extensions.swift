@@ -1,13 +1,7 @@
-//
-//  Date+Extensions.swift
-//  Tracker
-//
-//  Created by Yakov Nemychenkov on 27.08.2023.
-//
-
 import Foundation
+
 extension Date {
-    func dayOfWeek() -> Int {
+    func dayOfWeek() -> Int? {
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: self)
         

@@ -1,10 +1,3 @@
-//
-//  Colors.swift
-//  Tracker
-//
-//  Created by Yakov Nemychenkov on 11.07.2023.
-//
-
 import UIKit
 
 struct Colors {
@@ -40,4 +33,3 @@ struct ColorsSelection {
     static let selectionSeventeen = UIColor(red: 0.55, green: 0.45, blue: 0.9, alpha: 1)
     static let selectionEighteen = UIColor(red: 0.18, green: 0.82, blue: 0.35, alpha: 1)
 }
-

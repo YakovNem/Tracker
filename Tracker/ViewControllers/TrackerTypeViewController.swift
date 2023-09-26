@@ -1,26 +1,25 @@
-//
-//  TrackerTypeViewController.swift
-//  Tracker
-//
-//  Created by Yakov Nemychenkov on 08.07.2023.
-//
 import UIKit
 
-class TrackerTypeViewController: UIViewController {
+enum TrackerType: String {
+    case habit = "habit"
+    case irregularEvent = "irregularEvent"
+}
+
+final class TrackerTypeViewController: UIViewController {
     
     weak var delegate: TrackerCreationDelegate?
     private let trackerCreationVC = TrackerCreationViewController()
 
     //MARK: - Properties
     
-    private var habbitButton: UIButton = {
-       let habbitButton = UIButton()
-        habbitButton.setTitle("Привычка", for: .normal)
-        habbitButton.tintColor = .white
-        habbitButton.backgroundColor = .black
-        habbitButton.layer.cornerRadius = 16
-        habbitButton.translatesAutoresizingMaskIntoConstraints = false
-       return habbitButton
+    private var habitButton: UIButton = {
+       let habitButton = UIButton()
+        habitButton.setTitle("Привычка", for: .normal)
+        habitButton.tintColor = .white
+        habitButton.backgroundColor = .black
+        habitButton.layer.cornerRadius = 16
+        habitButton.translatesAutoresizingMaskIntoConstraints = false
+       return habitButton
     }()
     
     private var irregularEventButton: UIButton = {
@@ -40,7 +39,7 @@ class TrackerTypeViewController: UIViewController {
         view.backgroundColor = .white
         navigationItem.title = "Создание трекера"
         
-        habbitButton.addTarget(self, action: #selector(handleHabit), for: .touchUpInside)
+        habitButton.addTarget(self, action: #selector(handleHabit), for: .touchUpInside)
         irregularEventButton.addTarget(self, action: #selector(handleIrregularEvent), for: .touchUpInside)
         
         setupLayout()
@@ -51,33 +50,36 @@ class TrackerTypeViewController: UIViewController {
     private func setupLayout() {
         
         //Add views
-        view.addSubview(habbitButton)
+        view.addSubview(habitButton)
         view.addSubview(irregularEventButton)
         
         //Constraint
         NSLayoutConstraint.activate([
-            habbitButton.widthAnchor.constraint(equalToConstant: 335),
-            habbitButton.heightAnchor.constraint(equalToConstant: 60),
-            habbitButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            habbitButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            habbitButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            habitButton.widthAnchor.constraint(equalToConstant: 335),
+            habitButton.heightAnchor.constraint(equalToConstant: 60),
+            habitButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            habitButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            habitButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
             
             irregularEventButton.widthAnchor.constraint(equalToConstant: 335),
             irregularEventButton.heightAnchor.constraint(equalToConstant: 60),
             irregularEventButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             irregularEventButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            irregularEventButton.topAnchor.constraint(equalTo: habbitButton.bottomAnchor, constant: 16)
+            irregularEventButton.topAnchor.constraint(equalTo: habitButton.bottomAnchor, constant: 16)
         ])
     }
     
     //MARK: - Actions
     
     @objc func handleHabit() {
+        trackerCreationVC.trackerType = .habit
         trackerCreationVC.delegate = self.delegate
         navigationController?.pushViewController(trackerCreationVC, animated: true)
     }
     
     @objc func handleIrregularEvent() {
+        trackerCreationVC.trackerType = .irregularEvent
+        trackerCreationVC.delegate = self.delegate
         navigationController?.pushViewController(trackerCreationVC, animated: true)
     }
 }
