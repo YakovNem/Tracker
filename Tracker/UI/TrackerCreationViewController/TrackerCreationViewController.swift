@@ -19,7 +19,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     private var collectionView: ItemsCollectionView!
     var trackerType: TrackerType?
     
-    private var textField: UITextField = {
+    private lazy var textField: UITextField = {
         let textField = UITextField()
         textField.attributedPlaceholder = NSAttributedString(string: "Введите название трекера", attributes: [NSAttributedString.Key.foregroundColor: Colors.gray])
         textField.textColor = UIColor(cgColor: Colors.blackDay)
@@ -27,6 +27,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         
         let spacerView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
         textField.leftViewMode = .always
@@ -95,7 +96,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         
         categoryListViewController.categorySelected = { [weak self] selectedCategory in
             self?.selectedCategory = selectedCategory
-            self?.selectedCategoryTitle = selectedCategory?.title // предполагается, что у `selectedCategory` есть свойство `title`
+            self?.selectedCategoryTitle = selectedCategory?.title
             self?.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
         }
     }
@@ -166,6 +167,18 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     @objc func cancelTapped() {
         dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func textFieldDidChange(_ textField: UITextField) {
+        updateDoneButton()
+    }
+    
+    private func updateDoneButton() {
+        if textField.text?.isEmpty == true {
+            saveButton.backgroundColor = Colors.gray
+        } else {
+            saveButton.backgroundColor = UIColor(cgColor: Colors.blackDay)
+        }
     }
     
     func didSelectDays(_ days: [WeekDay]) {
