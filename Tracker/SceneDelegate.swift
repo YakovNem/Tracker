@@ -47,6 +47,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 extension SceneDelegate: OnboardingViewControllerDelegate {
     func onboardingDidFinish() {
         let tabBarController = TabBarViewController()
+        
+        let transition = CATransition()
+        transition.duration = 0.5
+        transition.type = CATransitionType.push
+        transition.subtype = CATransitionSubtype.fromRight
+        self.window?.layer.add(transition, forKey: kCATransition)
+        
         window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }
