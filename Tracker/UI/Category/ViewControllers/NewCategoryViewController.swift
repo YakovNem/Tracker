@@ -45,7 +45,7 @@ class NewCategoryViewController: KeyboardHandlingViewController, UITextFieldDele
         super.viewDidLoad()
         navigationItem.title = "Новая категория"
         navigationItem.hidesBackButton = true
-        navigationController?.view.backgroundColor = .white
+        view.backgroundColor = .white
         
         textField.delegate = self
         

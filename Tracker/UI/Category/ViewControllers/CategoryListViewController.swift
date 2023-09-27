@@ -11,8 +11,10 @@ class CategoryListViewController: UIViewController {
     var categorySelected: ((TrackerCategoryCoreData?) -> Void)?
     var selectedCategory: TrackerCategoryCoreData?
     
-    private   var tableViewHeight: CGFloat {
-        return CGFloat(viewModel.numberOfCategories()) * 75.0
+    private var tableViewHeight: CGFloat {
+        let height = CGFloat(viewModel.numberOfCategories()) * 75.0
+        let maxHeight = createCategoryButton.frame.minY - tableView.frame.minY - 20
+        return min(height, maxHeight)
     }
     
     private lazy var createCategoryButton: UIButton = {
