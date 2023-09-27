@@ -8,6 +8,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     weak var delegate: TrackerCreationDelegate?
     var selectedCategory: TrackerCategoryCoreData?
+    var selectedCategoryTitle: String?
     
     private let trackerScheduleViewController = TrackerScheduleViewController()
     private let categoryListViewController = CategoryListViewController()
@@ -94,6 +95,8 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         
         categoryListViewController.categorySelected = { [weak self] selectedCategory in
             self?.selectedCategory = selectedCategory
+            self?.selectedCategoryTitle = selectedCategory?.title // предполагается, что у `selectedCategory` есть свойство `title`
+            self?.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
         }
     }
     
@@ -225,6 +228,8 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         switch indexPath.row {
         case 0:
             cell.textLabel?.text = "Категория"
+            cell.detailTextLabel?.text = selectedCategoryTitle
+            cell.detailTextLabel?.textColor = Colors.gray
         case 1:
             cell.textLabel?.text = "Расписание"
             if selectedDays.count == WeekDay.allCases.count {
