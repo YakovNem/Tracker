@@ -23,6 +23,8 @@
 		B44745032AC0726800565408 /* CategoryListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44745022AC0726800565408 /* CategoryListViewModel.swift */; };
 		B44745052AC0727D00565408 /* NewCategoryListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44745042AC0727D00565408 /* NewCategoryListViewModel.swift */; };
 		B4557B552AC36A3200C0D7D8 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4557B542AC36A3200C0D7D8 /* CoreDataManager.swift */; };
+		B4557B572AC4D6DE00C0D7D8 /* CategoryCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4557B562AC4D6DE00C0D7D8 /* CategoryCell.swift */; };
+		B4557B5A2AC4DA1100C0D7D8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4557B592AC4DA1100C0D7D8 /* Constants.swift */; };
 		B455A7A42AAB6375005F5347 /* Tracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B455A7A32AAB6375005F5347 /* Tracker.swift */; };
 		B45E29832AA09F3200156524 /* ItemsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45E29822AA09F3200156524 /* ItemsCollectionView.swift */; };
 		B45E29872AA0AA6900156524 /* EmojiCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45E29862AA0AA6900156524 /* EmojiCell.swift */; };
@@ -62,6 +64,8 @@
 		B44745022AC0726800565408 /* CategoryListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryListViewModel.swift; sourceTree = "<group>"; };
 		B44745042AC0727D00565408 /* NewCategoryListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryListViewModel.swift; sourceTree = "<group>"; };
 		B4557B542AC36A3200C0D7D8 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
+		B4557B562AC4D6DE00C0D7D8 /* CategoryCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryCell.swift; sourceTree = "<group>"; };
+		B4557B592AC4DA1100C0D7D8 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		B455A7A32AAB6375005F5347 /* Tracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tracker.swift; sourceTree = "<group>"; };
 		B45E29822AA09F3200156524 /* ItemsCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemsCollectionView.swift; sourceTree = "<group>"; };
 		B45E29862AA0AA6900156524 /* EmojiCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCell.swift; sourceTree = "<group>"; };
@@ -118,6 +122,7 @@
 		B44744FE2AC071ED00565408 /* Category */ = {
 			isa = PBXGroup;
 			children = (
+				B4557B582AC4D70600C0D7D8 /* Model */,
 				B44745002AC0721D00565408 /* ViewModel */,
 				B44744FD2AC0712800565408 /* ViewControllers */,
 			);
@@ -131,6 +136,14 @@
 				B44745042AC0727D00565408 /* NewCategoryListViewModel.swift */,
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		B4557B582AC4D70600C0D7D8 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				B4557B562AC4D6DE00C0D7D8 /* CategoryCell.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		B455A7952AAB5806005F5347 /* DataStore */ = {
@@ -210,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				B4327A572A9B63D700555A2F /* Colors.swift */,
+				B4557B592AC4DA1100C0D7D8 /* Constants.swift */,
 				B4E77E4D2A9D134600C0D35F /* KeyboardHandlingViewController.swift */,
 				B4B945842AB304AC00D1BE4A /* String + Extensions.swift */,
 				B47A23D82AB59B9D00DF6388 /* Array + Extensions.swift */,
@@ -341,6 +355,7 @@
 				B4D992D32AB1B75F00B6CE57 /* UIColorMarshalling.swift in Sources */,
 				B4D992D82AB1D82F00B6CE57 /* TrackerCategory.swift in Sources */,
 				B4E77E4C2A9D068300C0D35F /* TabBarViewController .swift in Sources */,
+				B4557B572AC4D6DE00C0D7D8 /* CategoryCell.swift in Sources */,
 				B45E29872AA0AA6900156524 /* EmojiCell.swift in Sources */,
 				B4B945852AB304AC00D1BE4A /* String + Extensions.swift in Sources */,
 				B47A23D92AB59B9D00DF6388 /* Array + Extensions.swift in Sources */,
@@ -348,6 +363,7 @@
 				B4557B552AC36A3200C0D7D8 /* CoreDataManager.swift in Sources */,
 				B4E77E4E2A9D134600C0D35F /* KeyboardHandlingViewController.swift in Sources */,
 				B455A7A42AAB6375005F5347 /* Tracker.swift in Sources */,
+				B4557B5A2AC4DA1100C0D7D8 /* Constants.swift in Sources */,
 				B44744F92AC070BE00565408 /* CategoryListViewController.swift in Sources */,
 				B4327A542A9B63AA00555A2F /* TrackersViewController.swift in Sources */,
 				B4327A502A9B63AA00555A2F /* TrackerCreationViewController.swift in Sources */,

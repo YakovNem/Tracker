@@ -70,7 +70,7 @@ class CategoryListViewController: UIViewController {
         tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: tableViewHeight)
         tableViewHeightConstraint.isActive = true
     }
-
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableViewHeightConstraint.constant = tableViewHeight
@@ -130,7 +130,7 @@ class CategoryListViewController: UIViewController {
         table.layer.cornerRadius = 16
         table.separatorStyle = .none
         table.translatesAutoresizingMaskIntoConstraints = false
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        table.register(CategoryCell.self, forCellReuseIdentifier: CategoryCell.identifier)
         return table
     }
 }
@@ -140,30 +140,14 @@ extension CategoryListViewController: UITableViewDelegate, UITableViewDataSource
     // MARK: - UITableViewDelegate
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: CategoryCell.identifier, for: indexPath) as? CategoryCell
         let category = viewModel.category(at: indexPath.row)
-        cell.textLabel?.text = category?.title
-        cell.backgroundColor = .clear
-        cell.selectionStyle = .none
+        let isSelected = category == selectedCategory
+        let isLastCell = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
         
-        cell.subviews.forEach { subview in
-            if subview.tag == 12345 {
-                subview.removeFromSuperview()
-            }
-        }
+        cell?.configure(with: category, isSelected: isSelected, isLastCell: isLastCell)
         
-        let numberOfRows = tableView.numberOfRows(inSection: indexPath.section)
-        
-        if numberOfRows > 1 && indexPath.row < numberOfRows - 1 {
-            let separator = UIView(frame: CGRect(x: 16, y: cell.frame.height - 1, width: cell.frame.width - 32, height: 1))
-            separator.backgroundColor = UIColor.lightGray
-            separator.tag = 12345
-            cell.addSubview(separator)
-        }
-        
-        cell.accessoryType = category == selectedCategory ? .checkmark : .none
-        
-        return cell
+        return cell!
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -173,6 +157,7 @@ extension CategoryListViewController: UITableViewDelegate, UITableViewDataSource
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         selectedCategory = viewModel.category(at: indexPath.row)
         categorySelected?(selectedCategory)
+        tableView.reloadData()
         navigationController?.popViewController(animated: true)
     }
     

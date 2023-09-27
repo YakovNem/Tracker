@@ -10,20 +10,22 @@ class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSo
     
     weak var onboardingDelegate: OnboardingViewControllerDelegate?
     
-    private lazy var pages: [UIViewController] = {
-        
-        let firstViewController = ContentViewController()
-        firstViewController.backgroundImage = UIImage(named: "firstImage")
-        firstViewController.mainText = "Отслеживайте только то, что хотите"
-        firstViewController.contentDelegate = self
-        
-        let secondViewController = ContentViewController()
-        secondViewController.backgroundImage = UIImage(named: "secondImage")
-        secondViewController.mainText = "Даже если это не литры воды и йога"
-        secondViewController.contentDelegate = self 
-        
-        return [firstViewController, secondViewController]
-    }()
+    private lazy var pages: [UIViewController] = [
+        {
+            let controller = ContentViewController()
+            controller.backgroundImage = UIImage(named: "firstImage")
+            controller.mainText = "Отслеживайте только то, что хотите"
+            controller.contentDelegate = self
+            return controller
+        }(),
+        {
+            let controller = ContentViewController()
+            controller.backgroundImage = UIImage(named: "secondImage")
+            controller.mainText = "Даже если это не литры воды и йога"
+            controller.contentDelegate = self
+            return controller
+        }()
+    ]
     
     private lazy var pageControl: UIPageControl = {
         let control = UIPageControl()
@@ -55,9 +57,9 @@ class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSo
         view.addSubview(pageControl)
         
         NSLayoutConstraint.activate([
-               pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-               pageControl.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -150)
-           ])
+            pageControl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            pageControl.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -150)
+        ])
     }
     
     //MARK: - UIPageViewControllerDataSource
