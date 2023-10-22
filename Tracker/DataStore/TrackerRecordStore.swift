@@ -29,10 +29,7 @@ final class TrackerRecordStore: NSObject {
     
     weak var delegate: TrackerRecordStoreDelegate?
 
-    private let context: NSManagedObjectContext = {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        return appDelegate.persistentContainer.viewContext
-    }()
+    private let context = CoreDataManager.shared.context
     
     var allRecords: [TrackerRecordCoreData] {
         return fetchedResultsController.fetchedObjects ?? []
@@ -43,7 +40,7 @@ final class TrackerRecordStore: NSObject {
         newRecord.date = date
         newRecord.tracker = tracker
         
-        saveContext()
+        CoreDataManager.shared.saveContext()
         return newRecord
     }
     
@@ -62,20 +59,12 @@ final class TrackerRecordStore: NSObject {
     
     func updateRecord(_ record: TrackerRecordCoreData, withDate date: Date) {
         record.date = date
-        saveContext()
+        CoreDataManager.shared.saveContext()
     }
     
     func deleteRecord(_ record: TrackerRecordCoreData) {
         context.delete(record)
-        saveContext()
-    }
-
-    func saveContext() {
-        do {
-            try context.save()
-        } catch let error {
-            print("Failed to save context: \(error.localizedDescription)")
-        }
+        CoreDataManager.shared.saveContext()
     }
 }
 

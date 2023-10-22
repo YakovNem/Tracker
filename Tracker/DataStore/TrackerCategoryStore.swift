@@ -7,12 +7,12 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 
 final class TrackerCategoryStore: NSObject {
     
-     lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData> = {
         let fetchRequest = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(keyPath: \TrackerCategoryCoreData.title, ascending: true)
         ]
-         
+        
         let controller = NSFetchedResultsController(fetchRequest: fetchRequest,
                                                     managedObjectContext: context,
                                                     sectionNameKeyPath: nil,
@@ -26,33 +26,40 @@ final class TrackerCategoryStore: NSObject {
         return controller
     }()
     
-    private let context: NSManagedObjectContext = {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    }()
+    private let context = CoreDataManager.shared.context
     
     weak var delegate: TrackerCategoryStoreDelegate?
-
 
     func fetchAllCategories() -> [TrackerCategoryCoreData]? {
         return fetchedResultsController.fetchedObjects
     }
-
+    
     func updateCategory(_ category: TrackerCategoryCoreData, title: String) {
         category.title = title
-        saveContext()
-    }
-
-    func deleteCategory(_ category: TrackerCategoryCoreData) {
-        context.delete(category)
-        saveContext()
+        CoreDataManager.shared.saveContext()
     }
     
-     func saveContext() {
-        do {
-            try context.save()
-        } catch let error {
-            print("Failed to save context: \(error.localizedDescription)")
+    func deleteCategory(_ category: TrackerCategoryCoreData) {
+        context.delete(category)
+        CoreDataManager.shared.saveContext()
+    }
+    
+    func trackerCategory(from coreData: TrackerCategoryCoreData) -> TrackerCategory? {
+        guard let title = coreData.title else {
+            return nil
         }
+        
+        let trackerStore = TrackerStore()
+        
+        guard let allObjects = coreData.tracker?.allObjects as? [TrackerCoreData] else {
+            return nil
+        }
+        
+        let trackerObjects = allObjects.compactMap {
+            trackerStore.tracker(from: $0)
+        }
+        
+        return TrackerCategory(title: title, trackers: trackerObjects)
     }
 }
 

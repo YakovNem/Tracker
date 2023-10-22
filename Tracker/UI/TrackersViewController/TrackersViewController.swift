@@ -290,6 +290,8 @@ extension TrackersViewController: UICollectionViewDelegate, UICollectionViewData
     
 }
 
+//MARK: - Extensions
+
 extension TrackersViewController: TrackerCreationDelegate {
     func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type trackerType: TrackerType) {
         do {

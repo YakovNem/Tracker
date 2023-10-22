@@ -7,15 +7,19 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     //MARK: - Properties
     
     weak var delegate: TrackerCreationDelegate?
+    var selectedCategory: TrackerCategoryCoreData?
+    var selectedCategoryTitle: String?
     
     private let trackerScheduleViewController = TrackerScheduleViewController()
+    private let categoryListViewController = CategoryListViewController()
+    private let categoryStore = TrackerCategoryStore()
     private var selectedDays: [WeekDay] = []
     
     private var tableView: UITableView!
     private var collectionView: ItemsCollectionView!
     var trackerType: TrackerType?
     
-    private var textField: UITextField = {
+    private lazy var textField: UITextField = {
         let textField = UITextField()
         textField.attributedPlaceholder = NSAttributedString(string: "Введите название трекера", attributes: [NSAttributedString.Key.foregroundColor: Colors.gray])
         textField.textColor = UIColor(cgColor: Colors.blackDay)
@@ -23,6 +27,7 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         
         let spacerView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
         textField.leftViewMode = .always
@@ -88,6 +93,12 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
         
         setupLayout()
+        
+        categoryListViewController.categorySelected = { [weak self] selectedCategory in
+            self?.selectedCategory = selectedCategory
+            self?.selectedCategoryTitle = selectedCategory?.title
+            self?.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
+        }
     }
     
     //MARK: - Layout Configuration
@@ -141,19 +152,33 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         guard let selectedEmojiIndex = collectionView.selectedEmojiIndex else { return }
         guard let selectedColorIndex = collectionView.selectedColorIndex else { return }
         guard let trackerType = self.trackerType else { return }
+        guard let category = selectedCategory else { return }
+        
+        let trackerCategory = categoryStore.trackerCategory(from: category)
         
         let selectedEmoji = collectionView.emoji[selectedEmojiIndex.item]
         let selectedColor = collectionView.colors[selectedColorIndex.item]
         
         let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays)
-        let categoryTracker = TrackerCategory(title: "Важное", trackers: [newTracker])
         
-        delegate?.didCreateTracker(newTracker, category: categoryTracker, type: trackerType)
+        delegate?.didCreateTracker(newTracker, category: trackerCategory!, type: trackerType)
         dismiss(animated: true, completion: nil)
     }
     
     @objc func cancelTapped() {
         dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func textFieldDidChange(_ textField: UITextField) {
+        updateDoneButton()
+    }
+    
+    private func updateDoneButton() {
+        if textField.text?.isEmpty == true {
+            saveButton.backgroundColor = Colors.gray
+        } else {
+            saveButton.backgroundColor = UIColor(cgColor: Colors.blackDay)
+        }
     }
     
     func didSelectDays(_ days: [WeekDay]) {
@@ -169,7 +194,8 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         tableView.deselectRow(at: indexPath, animated: true)
         
         switch indexPath.row {
-        case 0: break
+        case 0:
+            navigationController?.pushViewController(categoryListViewController, animated: true)
         case 1:
             navigationController?.pushViewController(trackerScheduleViewController, animated: true)
         default: break
@@ -215,6 +241,8 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         switch indexPath.row {
         case 0:
             cell.textLabel?.text = "Категория"
+            cell.detailTextLabel?.text = selectedCategoryTitle
+            cell.detailTextLabel?.textColor = Colors.gray
         case 1:
             cell.textLabel?.text = "Расписание"
             if selectedDays.count == WeekDay.allCases.count {
