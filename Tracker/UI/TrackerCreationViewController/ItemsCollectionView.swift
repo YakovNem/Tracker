@@ -17,7 +17,7 @@ final class ItemsCollectionView: UICollectionView, UICollectionViewDelegate, UIC
         self.register(EmojiCell.self, forCellWithReuseIdentifier: "emojiCell")
         self.register(ColorsCell.self, forCellWithReuseIdentifier: "colorsCell")
         self.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "header")
-        self.backgroundColor = .white
+        self.backgroundColor = .systemBackground
         self.translatesAutoresizingMaskIntoConstraints = false
         self.isScrollEnabled = false
     }
@@ -66,7 +66,7 @@ final class ItemsCollectionView: UICollectionView, UICollectionViewDelegate, UIC
                 cell.backgroundColor = UIColor(cgColor: Colors.lightGray)
                 cell.layer.cornerRadius = 16
             } else {
-                cell.backgroundColor = .white
+                cell.backgroundColor = .systemBackground
             }
             
             return cell

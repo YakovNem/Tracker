@@ -7,7 +7,7 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 
 final class TrackerRecordStore: NSObject {
     
-     lazy var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> = {
         let fetchRequest = TrackerRecordCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)]
         
@@ -28,7 +28,7 @@ final class TrackerRecordStore: NSObject {
     }()
     
     weak var delegate: TrackerRecordStoreDelegate?
-
+    
     private let context = CoreDataManager.shared.context
     
     var allRecords: [TrackerRecordCoreData] {
@@ -72,6 +72,36 @@ extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         delegate?.didUpdateData(in: self)
     }
+    
+    func countOfAllCompletedTrackers() -> Int {
+        let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        do {
+            return try context.count(for: request)
+        } catch {
+            print("Error fetching all completed trackers: \(error)")
+            return 0
+        }
+    }
+    
 }
 
-
+extension TrackerRecordStore {
+    
+    func countOfCompletedDays(for tracker: TrackerCoreData) -> Int {
+        let records = fetchRecords(for: tracker)
+        
+        var uniqueDays = Set<String>()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .none
+        
+        for record in records {
+            if let date = record.date {
+                let dayString = dateFormatter.string(from: date)
+                uniqueDays.insert(dayString)
+            }
+        }
+        
+        return uniqueDays.count
+    }
+}

@@ -1,22 +1,39 @@
 import UIKit
 
-protocol TrackerCreationDelegate: AnyObject { func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type: TrackerType)}
+protocol TrackerCreationDelegate: AnyObject {
+    func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type: TrackerType)
+    func didUpdateTracker(_ originalTracker: Tracker, updatedTracker: Tracker, category: TrackerCategory)
+}
+
+enum TrackerViewControllerMode {
+    case create
+    case edit(tracker: Tracker)
+}
 
 class TrackerCreationViewController: KeyboardHandlingViewController, UITableViewDelegate, UITableViewDataSource, TrackerScheduleDelegate {
     
     //MARK: - Properties
     
     weak var delegate: TrackerCreationDelegate?
+    
     var selectedCategory: TrackerCategoryCoreData?
     var selectedCategoryTitle: String?
     
+    var mode: TrackerViewControllerMode = .create
+    var activeTextFieldConstraints: [NSLayoutConstraint] = []
+    
     private let trackerScheduleViewController = TrackerScheduleViewController()
     private let categoryListViewController = CategoryListViewController()
+    
+    private let trackerStore = TrackerStore()
     private let categoryStore = TrackerCategoryStore()
+    private let trackerRecordStore = TrackerRecordStore()
+    
     private var selectedDays: [WeekDay] = []
     
     private var tableView: UITableView!
     private var collectionView: ItemsCollectionView!
+    
     var trackerType: TrackerType?
     
     private lazy var textField: UITextField = {
@@ -72,12 +89,19 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         return buttonStack
     } ()
     
+    private var daysLabel: UILabel = {
+       let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 32)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     //MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.hidesBackButton = true
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         trackerScheduleViewController.delegate = self
         
         switch trackerType {
@@ -88,11 +112,14 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         case .none:
             navigationItem.title = ""
         }
+        if case .edit(let tracker) = mode {
+            loadTrackerData(for: tracker)
+        }
+        configureUI()
+        setupLayout()
         
         saveButton.addTarget(self, action: #selector(saveTapped), for: .touchUpInside)
         cancelButton.addTarget(self, action: #selector(cancelTapped), for: .touchUpInside)
-        
-        setupLayout()
         
         categoryListViewController.categorySelected = { [weak self] selectedCategory in
             self?.selectedCategory = selectedCategory
@@ -103,8 +130,30 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
     
     //MARK: - Layout Configuration
     
+    private func configureUI() {
+        switch mode {
+        case .create:
+            navigationItem.title = trackerType == .habit ? "Новая привычка" : "Новое нерегулярное событие"
+            saveButton.setTitle("Создать", for: .normal)
+        case .edit(let tracker):
+            textField.text = tracker.title
+            navigationItem.title = trackerType == .habit ? "Редактирование привычки" : "Редактирование нерегулярного события"
+            saveButton.setTitle("Сохранить", for: .normal)
+        }
+    }
+    
     private func setupLayout() {
-        
+        switch mode {
+            case .create:
+                setupLayoutCreate()
+                updateTextFieldConstraints(isEditMode: false)
+            case .edit(let tracker):
+                setupLayoutEdit(with: tracker)
+                updateTextFieldConstraints(isEditMode: true)
+        }
+    }
+    
+    private func setupCommonUIComponents() {
         tableView = createTableView()
         collectionView = ItemsCollectionView()
         
@@ -115,17 +164,14 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
         scrollView.addSubview(buttonStack)
         buttonStack.addArrangedSubview(cancelButton)
         buttonStack.addArrangedSubview(saveButton)
-        
-        NSLayoutConstraint.activate([
+    }
+
+    private func setupConstraints(isEditMode: Bool) {
+        var commonConstraints: [NSLayoutConstraint] = [
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            
-            textField.heightAnchor.constraint(equalToConstant: 75),
-            textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            textField.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 24),
             
             tableView.heightAnchor.constraint(equalToConstant: trackerType == .habit ? 150 : 75),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -142,29 +188,99 @@ class TrackerCreationViewController: KeyboardHandlingViewController, UITableView
             buttonStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             buttonStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             buttonStack.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -16),
-        ])
+        ]
+        
+        if isEditMode {
+            scrollView.addSubview(daysLabel)
+            let daysLabelConstraints: [NSLayoutConstraint] = [
+                daysLabel.heightAnchor.constraint(equalToConstant: 38),
+                daysLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 136),
+                daysLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -136),
+                daysLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
+            ]
+            commonConstraints.append(contentsOf: daysLabelConstraints)
+        }
+        
+        NSLayoutConstraint.activate(commonConstraints)
     }
     
+    private func updateTextFieldConstraints(isEditMode: Bool) {
+        NSLayoutConstraint.deactivate(activeTextFieldConstraints)
+
+        if isEditMode {
+            activeTextFieldConstraints = [
+                textField.heightAnchor.constraint(equalToConstant: 75),
+                textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                textField.topAnchor.constraint(equalTo: daysLabel.bottomAnchor, constant: 40)
+            ]
+        } else {
+            activeTextFieldConstraints = [
+                textField.heightAnchor.constraint(equalToConstant: 75),
+                textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                textField.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 24)
+            ]
+        }
+        
+        NSLayoutConstraint.activate(activeTextFieldConstraints)
+    }
+
+    private func setupLayoutCreate() {
+        setupCommonUIComponents()
+        setupConstraints(isEditMode: false)
+    }
+
+    private func setupLayoutEdit(with tracker: Tracker) {
+        setupCommonUIComponents()
+        setupConstraints(isEditMode: true)
+    }
+
     //MARK: - Actions
     
     @objc func saveTapped() {
-        guard let trackerName = textField.text, !trackerName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        guard let selectedEmojiIndex = collectionView.selectedEmojiIndex else { return }
-        guard let selectedColorIndex = collectionView.selectedColorIndex else { return }
-        guard let trackerType = self.trackerType else { return }
-        guard let category = selectedCategory else { return }
+        guard
+            let trackerName = textField.text, !trackerName.trimmingCharacters(in: .whitespaces).isEmpty,
+            let selectedEmojiIndex = collectionView.selectedEmojiIndex,
+            let selectedColorIndex = collectionView.selectedColorIndex,
+            let trackerType = self.trackerType,
+            let category = selectedCategory
+        else { return }
         
         let trackerCategory = categoryStore.trackerCategory(from: category)
-        
         let selectedEmoji = collectionView.emoji[selectedEmojiIndex.item]
         let selectedColor = collectionView.colors[selectedColorIndex.item]
-        
-        let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays)
-        
-        delegate?.didCreateTracker(newTracker, category: trackerCategory!, type: trackerType)
-        dismiss(animated: true, completion: nil)
+
+        switch mode {
+        case .create:
+            let newTracker = Tracker(id: UUID(), title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays, type: trackerType, isPinned: false)
+            delegate?.didCreateTracker(newTracker, category: trackerCategory!, type: trackerType)
+            dismiss(animated: true, completion: nil)
+            
+        case .edit(let tracker):
+            let updatedTracker = Tracker(id: tracker.id, title: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedDays, type: trackerType, isPinned: tracker.isPinned)
+            
+            trackerStore.updateTracker(originalTracker: tracker, updatedTracker: updatedTracker)
+            guard let trackerCategory = categoryStore.trackerCategory(from: selectedCategory!) else { return }
+            delegate?.didUpdateTracker(tracker, updatedTracker: updatedTracker, category: trackerCategory)
+            dismiss(animated: true, completion: nil)
+        }
     }
+
     
+    func loadTrackerData(for tracker: Tracker) {
+        textField.text = tracker.title
+
+        guard let coreDataTracker = trackerStore.coreDataFrom(tracker: tracker) else { return }
+        let completedDaysCount = trackerRecordStore.countOfCompletedDays(for: coreDataTracker)
+            daysLabel.text = "\(completedDaysCount) \(completedDaysCount.daysEnding())"
+        
+        if let category = trackerStore.category(for: tracker) {
+                selectedCategoryTitle = category.title
+            }
+    }
+
+
     @objc func cancelTapped() {
         dismiss(animated: true, completion: nil)
     }

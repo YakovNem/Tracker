@@ -1,11 +1,18 @@
 import UIKit
 import CoreData
+import YandexMobileMetrica
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).title = "Отменить"
+        guard let configuration = YMMYandexMetricaConfiguration(apiKey: "f81beb5a-40f3-4f8e-a5a1-58e8856a788f") else {
+                return true
+            }
+        
+        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).title = NSLocalizedString("cancel", comment: "Button to cancel search")
+        
+        YMMYandexMetrica.activate(with: configuration)
         return true
     }
     

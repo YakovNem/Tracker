@@ -15,8 +15,10 @@ final class TrackerTypeViewController: UIViewController {
     private var habitButton: UIButton = {
        let habitButton = UIButton()
         habitButton.setTitle("Привычка", for: .normal)
-        habitButton.tintColor = .white
-        habitButton.backgroundColor = .black
+        habitButton.setTitleColor(UIColor { (traits) -> UIColor in
+            return traits.userInterfaceStyle == .dark ? .black : .white
+        }, for: .normal)
+        habitButton.backgroundColor = .label
         habitButton.layer.cornerRadius = 16
         habitButton.translatesAutoresizingMaskIntoConstraints = false
        return habitButton
@@ -25,8 +27,10 @@ final class TrackerTypeViewController: UIViewController {
     private var irregularEventButton: UIButton = {
         let irregularEventButton = UIButton()
         irregularEventButton.setTitle("Нерегулярное событие", for: .normal)
-        irregularEventButton.backgroundColor = .black
-        irregularEventButton.tintColor = .white
+        irregularEventButton.backgroundColor = .label
+        irregularEventButton.setTitleColor(UIColor { (traits) -> UIColor in
+            return traits.userInterfaceStyle == .dark ? .black : .white
+        }, for: .normal)
         irregularEventButton.layer.cornerRadius = 16
         irregularEventButton.translatesAutoresizingMaskIntoConstraints = false
         return irregularEventButton
@@ -36,7 +40,7 @@ final class TrackerTypeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         navigationItem.title = "Создание трекера"
         
         habitButton.addTarget(self, action: #selector(handleHabit), for: .touchUpInside)
