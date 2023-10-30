@@ -7,7 +7,7 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 
 final class TrackerRecordStore: NSObject {
     
-     lazy var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData> = {
         let fetchRequest = TrackerRecordCoreData.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \TrackerRecordCoreData.date, ascending: true)]
         
@@ -28,11 +28,8 @@ final class TrackerRecordStore: NSObject {
     }()
     
     weak var delegate: TrackerRecordStoreDelegate?
-
-    private let context: NSManagedObjectContext = {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        return appDelegate.persistentContainer.viewContext
-    }()
+    
+    private let context = CoreDataManager.shared.context
     
     var allRecords: [TrackerRecordCoreData] {
         return fetchedResultsController.fetchedObjects ?? []
@@ -43,7 +40,7 @@ final class TrackerRecordStore: NSObject {
         newRecord.date = date
         newRecord.tracker = tracker
         
-        saveContext()
+        CoreDataManager.shared.saveContext()
         return newRecord
     }
     
@@ -62,20 +59,12 @@ final class TrackerRecordStore: NSObject {
     
     func updateRecord(_ record: TrackerRecordCoreData, withDate date: Date) {
         record.date = date
-        saveContext()
+        CoreDataManager.shared.saveContext()
     }
     
     func deleteRecord(_ record: TrackerRecordCoreData) {
         context.delete(record)
-        saveContext()
-    }
-
-    func saveContext() {
-        do {
-            try context.save()
-        } catch let error {
-            print("Failed to save context: \(error.localizedDescription)")
-        }
+        CoreDataManager.shared.saveContext()
     }
 }
 
@@ -83,6 +72,36 @@ extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         delegate?.didUpdateData(in: self)
     }
+    
+    func countOfAllCompletedTrackers() -> Int {
+        let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        do {
+            return try context.count(for: request)
+        } catch {
+            print("Error fetching all completed trackers: \(error)")
+            return 0
+        }
+    }
+    
 }
 
-
+extension TrackerRecordStore {
+    
+    func countOfCompletedDays(for tracker: TrackerCoreData) -> Int {
+        let records = fetchRecords(for: tracker)
+        
+        var uniqueDays = Set<String>()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .none
+        
+        for record in records {
+            if let date = record.date {
+                let dayString = dateFormatter.string(from: date)
+                uniqueDays.insert(dayString)
+            }
+        }
+        
+        return uniqueDays.count
+    }
+}

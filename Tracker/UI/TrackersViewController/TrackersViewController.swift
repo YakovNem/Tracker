@@ -22,6 +22,8 @@ class TrackersViewController: KeyboardHandlingViewController {
         }
     }
     
+    private var colors = Colors()
+    
     private var currentSearchType: SearchType = .none
     private var completedTrackers: [TrackerRecord] = []
     private var trackers: [Tracker] = []
@@ -33,7 +35,7 @@ class TrackersViewController: KeyboardHandlingViewController {
     
     private let collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = .systemBackground
         collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: TrackerCell.identifier)
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "Header")
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -43,7 +45,7 @@ class TrackersViewController: KeyboardHandlingViewController {
     private lazy var datePicker: UIDatePicker = {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
-        datePicker.locale = Locale(identifier: "ru_RU")
+        datePicker.locale = Locale.current
         datePicker.preferredDatePickerStyle = .compact
         datePicker.maximumDate = Date()
         datePicker.layer.cornerRadius = 8
@@ -61,7 +63,7 @@ class TrackersViewController: KeyboardHandlingViewController {
     
     private var emptyLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .black
+        label.textColor = .label
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 12)
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -72,7 +74,7 @@ class TrackersViewController: KeyboardHandlingViewController {
         let searchBar = UISearchBar()
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.placeholder = "Поиск"
+        searchBar.placeholder = NSLocalizedString("search", comment: "Placeholder text for the search bar in trackers screen")
         return searchBar
     }()
     
@@ -102,7 +104,7 @@ class TrackersViewController: KeyboardHandlingViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addButtonTapped))
-        navigationController?.navigationBar.tintColor = .black
+        navigationController?.navigationBar.tintColor = .label
         
         let datePickerItem = UIBarButtonItem(customView: datePicker)
         self.navigationItem.rightBarButtonItem = datePickerItem
@@ -110,7 +112,7 @@ class TrackersViewController: KeyboardHandlingViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Трекеры"
+        title = NSLocalizedString("trackers", comment: "Title for the trackers screen")
         navigationController?.navigationBar.prefersLargeTitles = true
         
         searchBar.delegate = self
@@ -130,7 +132,7 @@ class TrackersViewController: KeyboardHandlingViewController {
     //MARK: - Layout Configuration
     
     private func setupLayout() {
-        view.backgroundColor = .white
+        view.backgroundColor = colors.viewBackgroundColor
         emptyView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(collectionView)
@@ -200,10 +202,10 @@ class TrackersViewController: KeyboardHandlingViewController {
         switch currentSearchType {
         case .date:
             emptyImageView.image = UIImage(named: "star")
-            emptyLabel.text = "Что будем отслеживать?"
+            emptyLabel.text = NSLocalizedString("track_what_text", comment: "Prompt asking what to track")
         case .title:
             emptyImageView.image = UIImage(named: "emojiSearch")
-            emptyLabel.text = "Ничего не найдено"
+            emptyLabel.text = NSLocalizedString("nothing_found_text", comment: "Text indicating that nothing was found")
         case .none:
             break
         }
@@ -215,6 +217,7 @@ class TrackersViewController: KeyboardHandlingViewController {
 extension TrackersViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     //MARK: - UICollectionViewDataSource
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         guard let sections = trackerStore.fetchedResultsController.sections?.count
         else {
@@ -261,7 +264,7 @@ extension TrackersViewController: UICollectionViewDelegate, UICollectionViewData
             
             let title = UILabel()
             title.font = UIFont.boldSystemFont(ofSize: 20)
-            title.textColor = .black
+            title.textColor = .label
             guard let sectionInfo = trackerStore.fetchedResultsController.sections?[indexPath.section],
                   let category = sectionInfo.objects?.first as? TrackerCoreData,
                   let categoryName = category.trackerCategory?.title else {
@@ -277,7 +280,6 @@ extension TrackersViewController: UICollectionViewDelegate, UICollectionViewData
         }
     }
     
-    
     //MARK: - UICollectionViewDelegateFlowLayout
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -290,7 +292,16 @@ extension TrackersViewController: UICollectionViewDelegate, UICollectionViewData
     
 }
 
+//MARK: - Extensions
+
 extension TrackersViewController: TrackerCreationDelegate {
+    func didUpdateTracker(_ originalTracker: Tracker, updatedTracker: Tracker, category: TrackerCategory) {
+
+           trackerStore.updateTracker(originalTracker: originalTracker, updatedTracker: updatedTracker)
+           collectionView.reloadData()
+           updateEmptyViewVisibility()
+       }
+    
     func didCreateTracker(_ tracker: Tracker, category: TrackerCategory, type trackerType: TrackerType) {
         do {
             switch trackerType {
@@ -309,23 +320,79 @@ extension TrackersViewController: TrackerCreationDelegate {
 
 extension TrackersViewController: TrackerCellDelegate {
     func isTrackerCompleted(_ tracker: Tracker) -> Bool {
-        return completedTrackers.contains(where: { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) })
+           if let coreDataTracker = trackerStore.coreDataFrom(tracker: tracker) {
+               let records = trackerRecordStore.fetchRecords(for: coreDataTracker)
+               return records.contains(where: { Calendar.current.isDate($0.date ?? Date(), inSameDayAs: currentDate) })
+           }
+           return false
+       }
+       
+       func trackerCell(_ cell: TrackerCell, didAdd tracker: Tracker) {
+           if let coreDataTracker = trackerStore.coreDataFrom(tracker: tracker) {
+               trackerRecordStore.createRecord(for: coreDataTracker, date: currentDate)
+           }
+           cell.configure(with: tracker, completedTrackers: [], currentDate: currentDate)
+       }
+       
+       func trackerCell(_ cell: TrackerCell, didRemove tracker: Tracker) {
+           if let coreDataTracker = trackerStore.coreDataFrom(tracker: tracker) {
+               if let record = trackerRecordStore.fetchRecords(for: coreDataTracker).first(where: { Calendar.current.isDate($0.date ?? Date(), inSameDayAs: currentDate) }) {
+                   trackerRecordStore.deleteRecord(record)
+               }
+           }
+           cell.configure(with: tracker, completedTrackers: [], currentDate: currentDate)
+       }
+
+    func trackerCell(_ cell: TrackerCell, didRequestEdit tracker: Tracker) {
+        let trackerCreationVC = TrackerCreationViewController()
+        trackerCreationVC.mode = .edit(tracker: tracker)
+        trackerCreationVC.trackerType = tracker.type
+        
+        let navigationController = UINavigationController(rootViewController: trackerCreationVC)
+        navigationController.modalPresentationStyle = .formSheet
+        present(navigationController, animated: true, completion: nil)
     }
     
-    func trackerCell(_ cell: TrackerCell, didAdd tracker: Tracker) {
-        let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
+    func trackerCell(_ cell: TrackerCell, didDelete tracker: Tracker) {
+        let alert = UIAlertController(title: nil,
+                                      message: "Уверены, что хотите удалить трекер?",
+                                      preferredStyle: .actionSheet)
         
-        if !completedTrackers.contains(where: { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }) {
-            completedTrackers.append(record)
-            cell.configure(with: tracker, completedTrackers: completedTrackers, currentDate: currentDate)
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive, handler: { _ in
+            if let trackerCoreData = self.trackerStore.coreDataFrom(tracker: tracker) {
+                self.trackerStore.deleteTracker(tracker: trackerCoreData)
+                self.collectionView.reloadData()
+                self.updateEmptyViewVisibility()
+            } else {
+                print("Could not convert Tracker to TrackerCoreData")
+            }
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Отменить", style: .cancel, handler: nil))
+        
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func trackerCell(_ cell: TrackerCell, didTogglePin tracker: Tracker) {
+        // Check if the tracker is already pinned
+        if let coreDataTracker = trackerStore.coreDataFrom(tracker: tracker) {
+            if coreDataTracker.isPinned {
+                // Unpin the tracker if it's already pinned (optional: if you want to toggle pin/unpin)
+                coreDataTracker.isPinned = false
+            } else {
+                // Pin the tracker if it's not already pinned
+                trackerStore.pinTracker(tracker: tracker)
+            }
+            
+            // Reload the cell to reflect the change
+            if let indexPath = collectionView.indexPath(for: cell) {
+                collectionView.reloadItems(at: [indexPath])
+            }
+        } else {
+            print("Could not convert Tracker to TrackerCoreData")
         }
     }
-    func trackerCell(_ cell: TrackerCell, didRemove tracker: Tracker) {
-        if let index = completedTrackers.firstIndex(where: { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }) {
-            completedTrackers.remove(at: index)
-            cell.configure(with: tracker, completedTrackers: completedTrackers, currentDate: currentDate)
-        }
-    }
+
 }
 
 extension TrackersViewController: UISearchBarDelegate {

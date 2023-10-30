@@ -11,6 +11,8 @@ struct Colors {
     static let backgroundNight = UIColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 0.85).cgColor
     static let red = UIColor(red: 0.96, green: 0.42, blue: 0.42, alpha: 1).cgColor
     static let blue = UIColor(red: 0.22, green: 0.45, blue: 0.91, alpha: 1).cgColor
+    
+    let viewBackgroundColor = UIColor.systemBackground
 }
 
 struct ColorsSelection {

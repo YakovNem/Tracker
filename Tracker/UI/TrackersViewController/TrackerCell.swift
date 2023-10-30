@@ -4,6 +4,9 @@ protocol TrackerCellDelegate: AnyObject {
     func trackerCell(_ cell: TrackerCell, didAdd tracker: Tracker)
     func trackerCell(_ cell: TrackerCell, didRemove tracker: Tracker)
     func isTrackerCompleted(_ tracker: Tracker) -> Bool
+    func trackerCell(_ cell: TrackerCell, didRequestEdit tracker: Tracker)
+    func trackerCell(_ cell: TrackerCell, didDelete tracker: Tracker)
+    func trackerCell(_ cell: TrackerCell, didTogglePin tracker: Tracker)
 }
 
 class TrackerCell: UICollectionViewCell {
@@ -13,6 +16,9 @@ class TrackerCell: UICollectionViewCell {
     
     //MARK: - Properties
     weak var delegate: TrackerCellDelegate?
+    
+    private let trackerStore = TrackerStore()
+    private let trackerRecordStore = TrackerRecordStore()
     
     private var tracker: Tracker?
     private var completedTrackerSet = Set<TrackerRecord>()
@@ -55,7 +61,7 @@ class TrackerCell: UICollectionViewCell {
     private var daysLabel: UILabel = {
         let daysLabel = UILabel()
         daysLabel.font = UIFont.systemFont(ofSize: 12)
-        daysLabel.textColor = .black
+        daysLabel.textColor = .label
         daysLabel.translatesAutoresizingMaskIntoConstraints = false
         return daysLabel
     }()
@@ -63,7 +69,7 @@ class TrackerCell: UICollectionViewCell {
     private lazy var buttonPlus: UIButton = {
         let buttonPlus = UIButton()
         buttonPlus.setImage(UIImage(systemName: "plus"), for: .normal)
-        buttonPlus.tintColor = .white
+        buttonPlus.tintColor = .systemBackground
         buttonPlus.layer.cornerRadius = 17
         buttonPlus.translatesAutoresizingMaskIntoConstraints = false
         buttonPlus.addTarget(self, action: #selector(addCompleted), for: .touchUpInside)
@@ -75,6 +81,7 @@ class TrackerCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayout()
+        addContextMenuToCardTrackerView()
     }
     
     required init?(coder: NSCoder) {
@@ -147,7 +154,7 @@ class TrackerCell: UICollectionViewCell {
         
         updateButtonImage()
         count = completedTrackerSet.filter { $0.trackerId == tracker.id }.count
-        daysLabel.text = "\(count) \(endingDays(count: count))"
+        daysLabel.text = "\(count) \(count.daysEnding())"
     }
     
     private func updateButtonImage() {
@@ -156,30 +163,46 @@ class TrackerCell: UICollectionViewCell {
         let isCompletedToday = delegate?.isTrackerCompleted(tracker) ?? false
         buttonPlus.setImage(isCompletedToday ? UIImage(systemName: "checkmark") : UIImage(systemName: "plus"), for: .normal)
     }
-    
-    private func endingDays(count: Int) -> String {
-        switch (count % 10, count % 100) {
-        case (1, let x) where x != 11:
-            return "день"
-        case (2...4, let x) where !(12...14).contains(x):
-            return "дня"
-        default: return "дней"
-        }
+
+    private func addContextMenuToCardTrackerView() {
+        let contextMenuInteraction = UIContextMenuInteraction(delegate: self)
+        cardTrackerView.addInteraction(contextMenuInteraction)
     }
-    
+
     func configure(with tracker: Tracker, completedTrackers:[TrackerRecord], currentDate: Date) {
         self.currentDate = currentDate
-        self.tracker = tracker
-        self.completedTrackerSet = Set(completedTrackers)
+          self.tracker = tracker
+          if let coreDataTracker = trackerStore.coreDataFrom(tracker: tracker) {
+              let completedTrackers = trackerRecordStore.fetchRecords(for: coreDataTracker)
+              self.completedTrackerSet = Set(completedTrackers.map { TrackerRecord(trackerId: $0.tracker?.id ?? UUID(), date: $0.date ?? Date()) })
+          }
         
         cardTrackerView.backgroundColor = tracker.color
-        quantityManagement.backgroundColor = .white
+        quantityManagement.backgroundColor = .systemBackground
         titleLabel.text = tracker.title
         emojiLabel.text = tracker.emoji
         buttonPlus.backgroundColor = tracker.color
         
         count = completedTrackerSet.filter { $0.trackerId == tracker.id }.count
-        daysLabel.text = "\(count) \(endingDays(count: count))"
+        daysLabel.text = "\(count) \(count.daysEnding())"
         updateButtonImage()
+    }
+}
+
+extension TrackerCell: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { _ in
+            return UIMenu(title: "", children: [
+                UIAction(title: "Закрепить", handler: { [self] _ in
+                    self.delegate?.trackerCell(self, didTogglePin: tracker!)
+                }),
+                UIAction(title: "Редактировать", handler: { [self] _ in
+                    self.delegate?.trackerCell(self, didRequestEdit: tracker!)
+                }),
+                UIAction(title: "Удалить", attributes: .destructive, handler: { [self] _ in
+                    self.delegate?.trackerCell(self, didDelete: tracker!)
+                })
+            ])
+        })
     }
 }

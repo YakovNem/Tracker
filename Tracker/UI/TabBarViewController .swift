@@ -2,6 +2,8 @@ import UIKit
 
 class TabBarViewController: UITabBarController {
     
+    private let colors = Colors()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewControllers()
@@ -15,14 +17,14 @@ class TabBarViewController: UITabBarController {
                 image: UIImage(systemName: "smallcircle.filled.circle.fill"),
                 tag: 0)
             
-            let statisticsViewController = StatisticsViewController()
-            statisticsViewController.title = "Статистика"
-            statisticsViewController.tabBarItem = UITabBarItem(
+            let statisticsNavigationController = UINavigationController(rootViewController: StatisticsViewController())
+            statisticsNavigationController.title = "Статистика"
+            statisticsNavigationController.tabBarItem = UITabBarItem(
                 title: "Статистика",
                 image: UIImage(systemName: "hare.fill"),
                 tag: 1)
             
-            self.viewControllers = [trackersViewController, statisticsViewController]
+            self.viewControllers = [trackersViewController, statisticsNavigationController]
         }
     
     private func setupTabBarShadow() {
@@ -31,7 +33,7 @@ class TabBarViewController: UITabBarController {
         borderLayer.frame = CGRect(x: 0, y: 0, width: tabBar.frame.width, height: 0.5)
         tabBar.layer.addSublayer(borderLayer)
         
-        tabBar.backgroundColor = .white
+        tabBar.backgroundColor = colors.viewBackgroundColor
         tabBar.isTranslucent = false
     }
 }
